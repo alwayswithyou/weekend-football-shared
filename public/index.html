@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>周末约球台</title>
+<style>
+  :root{
+    --green:#1f9d55; --green-d:#157a40; --red:#e23d3d; --ink:#1f2a24;
+    --muted:#6b7a72; --line:#e6ece8; --bg:#f4f7f5; --card:#fff;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+    background:var(--bg);color:var(--ink);font-size:16px;line-height:1.5;padding-bottom:calc(20px + env(safe-area-inset-bottom))}
+  .wrap{max-width:760px;margin:0 auto;padding:14px 14px 40px}
+  header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:6px 2px 14px}
+  header h1{font-size:20px;margin:0;display:flex;align-items:center;gap:8px}
+  .ball{width:20px;height:20px;border-radius:50%;background:var(--green);position:relative;flex:0 0 auto}
+  .ball::after{content:"";position:absolute;left:50%;top:-2px;width:2px;height:24px;background:#fff;transform:translateX(-50%) rotate(20deg)}
+  .org-toggle{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none}
+  .switch{width:42px;height:24px;border-radius:12px;background:#cfd8d2;position:relative;transition:.2s}
+  .switch.on{background:var(--green)}
+  .switch::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s}
+  .switch.on::after{left:20px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  .card h2{font-size:15px;margin:0 0 10px;color:var(--muted);font-weight:600;letter-spacing:.3px}
+  .alert{border-left:4px solid var(--red);background:#fdecec;padding:10px 12px;border-radius:8px;margin-bottom:10px;font-size:14px}
+  .alert b{color:var(--red)}
+  .pill{display:inline-block;font-size:12px;padding:2px 8px;border-radius:20px;background:#eaf6ef;color:var(--green-d);margin-left:6px}
+  .pill.warn{background:#fdecec;color:var(--red)}
+  .stat-row{display:flex;gap:10px;flex-wrap:wrap}
+  .stat{flex:1;min-width:120px;background:#f7faf8;border-radius:10px;padding:10px 12px}
+  .stat .n{font-size:22px;font-weight:700;color:var(--green-d)}
+  .stat .l{font-size:12px;color:var(--muted)}
+  label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
+  input,select,textarea{width:100%;font-size:16px;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);font-family:inherit}
+  textarea{resize:vertical;min-height:44px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:0 16px;border:none;border-radius:10px;
+    font-size:15px;font-weight:600;cursor:pointer;font-family:inherit}
+  .btn-primary{background:var(--green);color:#fff}
+  .btn-primary:active{background:var(--green-d)}
+  .btn-ghost{background:#eef3f0;color:var(--ink)}
+  .btn-danger{background:#fdecec;color:var(--red)}
+  .btn-sm{min-height:36px;padding:0 12px;font-size:13px}
+  .row{display:flex;gap:8px;flex-wrap:wrap}
+  .slot{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px}
+  .slot.overdue{border-color:#f3c2c2;background:#fff7f7}
+  .slot.confirmed{border-color:var(--green);background:#f3faf5}
+  .slot .top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+  .slot .when{font-weight:700;font-size:15px}
+  .slot .meta{font-size:13px;color:var(--muted);margin-top:2px}
+  .bar{height:8px;border-radius:5px;background:#eef3f0;overflow:hidden;margin:8px 0 4px}
+  .bar > i{display:block;height:100%;background:var(--green)}
+  .people{font-size:13px;color:var(--muted);margin:4px 0}
+  .person{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:14px;padding:5px 0;border-top:1px dashed var(--line)}
+  .person .nm{font-weight:600}
+  .person .nt{color:var(--muted);font-size:12px}
+  .x{color:var(--red);font-size:18px;cursor:pointer;padding:0 4px}
+  .hint{font-size:12px;color:var(--muted);margin-top:6px}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+  .canvas-preview{width:100%;border:1px solid var(--line);border-radius:10px;margin-top:10px;display:none}
+  .toast{position:fixed;left:50%;bottom:calc(30px + env(safe-area-inset-bottom));transform:translateX(-50%);
+    background:#1f2a24;color:#fff;padding:10px 18px;border-radius:24px;font-size:14px;opacity:0;pointer-events:none;transition:.25s;z-index:99}
+  .toast.show{opacity:1}
+  .hidden{display:none!important}
+  .add-slot{background:#f7faf8;border:1px dashed var(--line);border-radius:12px;padding:12px;margin-top:10px}
+  @media(max-width:768px){ .stat{min-width:100px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1><span class="ball"></span>周末约球台</h1>
+    <div class="org-toggle" id="orgToggle">
+      <span>组织者模式</span>
+      <span class="switch" id="orgSwitch"></span>
+    </div>
+  </header>
+
+  <!-- 概览 / 今天要处理 -->
+  <div class="card" id="overview">
+    <h2>概览 · 待处理</h2>
+    <div id="overviewBody"></div>
+  </div>
+
+  <!-- 报名 -->
+  <div class="card">
+    <h2>我要报名</h2>
+    <label>选择场次</label>
+    <select id="signupSlot"></select>
+    <label>名字 / 昵称</label>
+    <input id="signupName" type="text" placeholder="例如：张三" maxlength="20">
+    <label>手机号（选填，仅组织者可见）</label>
+    <input id="signupPhone" type="tel" placeholder="选填" maxlength="20">
+    <label>备注（选填）</label>
+    <textarea id="signupNote" placeholder="例如：守门员 / 带个球" maxlength="40"></textarea>
+    <div class="row" style="margin-top:12px">
+      <button class="btn btn-primary" id="signupBtn" style="flex:1">提交报名</button>
+    </div>
+    <div class="hint">提交后全群实时可见，组织者可在下方管理。</div>
+  </div>
+
+  <!-- 时段与名单 -->
+  <div class="card">
+    <h2>时段与报名名单</h2>
+    <div id="slotsBody"></div>
+
+    <div class="add-slot hidden" id="addSlotBox">
+      <h2 style="margin-top:0">新增候选时段（组织者）</h2>
+      <label>日期</label>
+      <input id="newDate" type="date">
+      <div class="row">
+        <div style="flex:1"><label>开始</label><input id="newStart" type="time" value="19:00"></div>
+        <div style="flex:1"><label>结束</label><input id="newEnd" type="time" value="21:00"></div>
+      </div>
+      <label>场地</label>
+      <input id="newPlace" type="text" placeholder="例如：滨江人造草 2 号场" maxlength="30">
+      <label>人数上限（0 表示不限）</label>
+      <input id="newCap" type="number" min="0" value="14">
+      <div class="row" style="margin-top:12px">
+        <button class="btn btn-primary" id="addSlotBtn" style="flex:1">添加时段</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 报表 -->
+  <div class="card">
+    <h2>生成报表</h2>
+    <div class="row">
+      <button class="btn btn-primary" id="reportBtn">生成报表图</button>
+      <button class="btn btn-ghost hidden" id="dlBtn">下载 PNG</button>
+      <button class="btn btn-ghost hidden" id="copyBtn">复制接龙文本</button>
+    </div>
+    <canvas id="reportCanvas" class="canvas-preview"></canvas>
+  </div>
+
+  <!-- 数据管理（组织者） -->
+  <div class="card hidden" id="dataCard">
+    <h2>数据管理（组织者）</h2>
+    <div class="toolbar">
+      <button class="btn btn-ghost btn-sm" id="exportBtn">导出 JSON</button>
+      <button class="btn btn-ghost btn-sm" id="importBtn">导入 JSON</button>
+      <button class="btn btn-danger btn-sm" id="resetBtn">清空重置</button>
+    </div>
+    <input id="importFile" type="file" accept="application/json" class="hidden">
+    <div class="hint">数据存于服务端 data.json，所有人共享。导出可本地备份。</div>
+  </div>
+
+  <div class="hint" style="text-align:center;margin-top:8px">
+    数据实时保存在服务器，群里所有人打开同一链接即可看到最新报名。
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '/api';
+let STATE = { slots: [], signups: [] };
+let organizer = localStorage.getItem('wb_fb_org') === '1';
+
+const $ = (id) => document.getElementById(id);
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),1800); }
+function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function weekday(s){ const d=new Date(s+'T00:00:00'); return ['周日','周一','周二','周三','周四','周五','周六'][d.getDay()]; }
+function isOverdue(s){ return !s.confirmed && !s.archived && s.date < todayStr(); }
+function countOf(slotId){ return STATE.signups.filter(u=>u.slotId===slotId).length; }
+
+async function load(){ try{ const r=await fetch(API+'/state'); STATE=await r.json(); }catch(e){ toast('加载失败'); } render(); }
+async function act(path, body){ try{
+  const r=await fetch(API+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body||{})});
+  if(!r.ok){ toast('操作失败'); return; }
+  STATE=await r.json(); render();
+}catch(e){ toast('网络错误'); } }
+
+function render(){
+  // 组织者开关
+  $('orgSwitch').classList.toggle('on', organizer);
+  $('addSlotBox').classList.toggle('hidden', !organizer);
+  $('dataCard').classList.toggle('hidden', !organizer);
+
+  // 概览
+  const confirmed = STATE.slots.filter(s=>s.confirmed && !s.archived);
+  const overdue = STATE.slots.filter(isOverdue);
+  const candidates = STATE.slots.filter(s=>!s.confirmed && !s.archived && !isOverdue(s));
+  let html = '';
+  if(confirmed.length){
+    confirmed.forEach(s=>{
+      const c=countOf(s.id);
+      html += `<div class="alert" style="border-color:var(--green);background:#f3faf5;color:var(--green-d)">
+        <b style="color:var(--green-d)">已确认场次</b> · ${s.date} ${weekday(s.date)} ${s.start}-${s.end} · ${s.place}
+        <span class="pill">已报名 ${c}${s.cap?('/'+s.cap):''} 人</span></div>`;
+    });
+  }
+  if(overdue.length){
+    overdue.forEach(s=>{ html += `<div class="alert"><b>逾期未确认</b> · ${s.date} ${weekday(s.date)} ${s.start}-${s.end} · ${s.place} <span class="pill warn">待处理</span></div>`; });
+  }
+  if(!confirmed.length && !overdue.length){ html += `<div class="hint">还没有确认的场次，快在下方添加并确认一个吧。</div>`; }
+  html += `<div class="stat-row">
+    <div class="stat"><div class="n">${STATE.signups.length}</div><div class="l">总报名人次</div></div>
+    <div class="stat"><div class="n">${confirmed.length}</div><div class="l">已确认场次</div></div>
+    <div class="stat"><div class="n">${candidates.length}</div><div class="l">候选待确认</div></div>
+  </div>`;
+  $('overviewBody').innerHTML = html;
+
+  // 报名表单的场次下拉（只列未归档）
+  const liveSlots = STATE.slots.filter(s=>!s.archived);
+  $('signupSlot').innerHTML = liveSlots.map(s=>`<option value="${s.id}">${s.date} ${weekday(s.date)} ${s.start}-${s.end} ${s.place}${s.confirmed?'（已确认）':''}</option>`).join('') || '<option value="">暂无场次</option>';
+
+  // 时段列表
+  const sorted = [...STATE.slots].sort((a,b)=> a.date.localeCompare(b.date) || a.start.localeCompare(b.start));
+  let sh = '';
+  sorted.forEach(s=>{
+    const c=countOf(s.id);
+    const pct = s.cap?Math.min(100,Math.round(c/s.cap*100)):100;
+    const cls = isOverdue(s)?'overdue':(s.confirmed?'confirmed':'');
+    sh += `<div class="slot ${cls}">
+      <div class="top">
+        <div>
+          <div class="when">${s.date} ${weekday(s.date)} <span class="pill ${s.confirmed?'':'warn'}">${s.confirmed?'已确认':'候选'}</span></div>
+          <div class="meta">${s.start}${s.end?('-'+s.end):''} · ${s.place}${s.archived?' · 已归档':''}</div>
+        </div>
+        ${organizer?`<div class="row">
+          <button class="btn btn-ghost btn-sm" data-confirm="${s.id}">${s.confirmed?'取消确认':'确认'}</button>
+          <button class="btn btn-ghost btn-sm" data-archive="${s.id}">${s.archived?'恢复':'归档'}</button>
+        </div>`:''}
+      </div>`;
+    if(!s.archived){
+      sh += `<div class="bar"><i style="width:${pct}%"></i></div>
+        <div class="people">报名 ${c}${s.cap?(' / '+s.cap):''} 人</div>`;
+      const ps = STATE.signups.filter(u=>u.slotId===s.id);
+      if(ps.length){
+        ps.forEach(u=>{
+          sh += `<div class="person"><span><span class="nm">${esc(u.name)}</span>${u.note?` <span class="nt">${esc(u.note)}</span>`:''}${organizer&&u.phone?` <span class="nt">${esc(u.phone)}</span>`:''}</span>
+            ${organizer?`<span class="x" data-del="${u.id}">×</span>`:''}</div>`;
+        });
+      }
+    }
+    sh += `</div>`;
+  });
+  $('slotsBody').innerHTML = sh;
+
+  // 绑定组织者按钮
+  document.querySelectorAll('[data-confirm]').forEach(b=>b.onclick=()=>act('/api/slot/confirm',{id:b.dataset.confirm}));
+  document.querySelectorAll('[data-archive]').forEach(b=>b.onclick=()=>act('/api/slot/archive',{id:b.dataset.archive}));
+  document.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{ if(confirm('删除该报名？')) act('/api/signup/remove',{id:b.dataset.del}); });
+}
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+// 报名
+$('signupBtn').onclick = async ()=>{
+  const slotId=$('signupSlot').value, name=$('signupName').value.trim();
+  if(!slotId){ toast('暂无可报名场次'); return; }
+  if(!name){ toast('请填写名字'); return; }
+  await act('/api/signup',{ slotId, name, phone:$('signupPhone').value.trim(), note:$('signupNote').value.trim() });
+  $('signupName').value=''; $('signupPhone').value=''; $('signupNote').value='';
+  toast('报名成功');
+};
+
+// 组织者开关
+$('orgToggle').onclick = ()=>{ organizer=!organizer; localStorage.setItem('wb_fb_org', organizer?'1':'0'); render(); };
+
+// 新增时段
+$('addSlotBtn').onclick = async ()=>{
+  const date=$('newDate').value, start=$('newStart').value, end=$('newEnd').value, place=$('newPlace').value.trim();
+  const cap=Number($('newCap').value)||0;
+  if(!date||!start||!place){ toast('请填完整'); return; }
+  await act('/api/slot',{date,start,end,place,cap});
+  $('newPlace').value=''; toast('已添加时段');
+};
+
+// 报表
+$('reportBtn').onclick = ()=> drawReport();
+$('dlBtn').onclick = ()=>{
+  const cv=$('reportCanvas');
+  cv.toBlob(b=>{ const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='约球报表_'+todayStr()+'.png'; a.click(); toast('已下载'); });
+};
+$('copyBtn').onclick = ()=>{
+  const txt = buildText();
+  navigator.clipboard.writeText(txt).then(()=>toast('接龙文本已复制')).catch(()=>{ prompt('复制下面文本：',txt); });
+};
+
+function buildText(){
+  let lines=['【周末约球报名接龙】'];
+  const confirmed=STATE.slots.filter(s=>s.confirmed&&!s.archived);
+  confirmed.forEach(s=>lines.push(`已确认：${s.date} ${weekday(s.date)} ${s.start}-${s.end} @${s.place}`));
+  STATE.slots.filter(s=>!s.archived).forEach(s=>{
+    const ps=STATE.signups.filter(u=>u.slotId===s.id);
+    lines.push(`\n${s.date} ${weekday(s.date)} ${s.start}-${s.end} ${s.place}${s.confirmed?'（已确认）':''}：共 ${ps.length} 人`);
+    ps.forEach((u,i)=>lines.push(`${i+1}. ${u.name}${u.note?'（'+u.note+'）':''}`));
+  });
+  lines.push('\n（由周末约球台生成）');
+  return lines.join('\n');
+}
+
+function roundRect(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+
+function drawReport(){
+  const cv=$('reportCanvas'); const ctx=cv.getContext('2d');
+  const W=760; let y=0; const pad=32;
+  // 计算高度
+  const slots=[...STATE.slots].filter(s=>!s.archived).sort((a,b)=>a.date.localeCompare(b.date));
+  let rows=slots.length; let personRows=0; slots.forEach(s=>personRows+=STATE.signups.filter(u=>u.slotId===s.id).length);
+  const H = 150 + rows*92 + (personRows? (40+personRows*26) : 0) + 60;
+  cv.width=W; cv.height=H; cv.style.display='block';
+  // 背景
+  ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,W,H);
+  // 标题
+  ctx.fillStyle='#1f9d55'; roundRect(ctx,pad,pad,34,34,8); ctx.fill();
+  ctx.fillStyle='#1f2a24'; ctx.font='bold 26px -apple-system,"PingFang SC",sans-serif'; ctx.textBaseline='middle';
+  ctx.fillText('周末约球报名报表', pad+46, pad+18);
+  ctx.fillStyle='#6b7a72'; ctx.font='13px -apple-system,sans-serif';
+  ctx.fillText('生成于 '+new Date().toLocaleString('zh-CN'), pad, pad+48);
+  y=pad+72;
+  ctx.strokeStyle='#e6ece8'; ctx.beginPath(); ctx.moveTo(pad,y); ctx.lineTo(W-pad,y); ctx.stroke();
+  y+=20;
+  // 场次块
+  slots.forEach(s=>{
+    const c=STATE.signups.filter(u=>u.slotId===s.id).length;
+    ctx.fillStyle = s.confirmed? '#1f9d55':'#e23d3d';
+    ctx.font='bold 16px -apple-system,sans-serif';
+    ctx.fillText(`${s.date} ${weekday(s.date)}  ${s.start}-${s.end}`, pad, y);
+    ctx.fillStyle='#6b7a72'; ctx.font='13px -apple-system,sans-serif';
+    ctx.fillText(`${s.place}  ·  ${s.confirmed?'已确认':'候选'}  ·  ${c}${s.cap?('/'+s.cap):''} 人`, pad, y+20);
+    // 进度条
+    const bw=W-pad*2; const pct=s.cap?Math.min(1,c/s.cap):1;
+    ctx.fillStyle='#eef3f0'; roundRect(ctx,pad,y+34,bw,10,5); ctx.fill();
+    ctx.fillStyle='#1f9d55'; roundRect(ctx,pad,y+34,bw*pct,10,5); ctx.fill();
+    y+=62;
+    // 名单
+    const ps=STATE.signups.filter(u=>u.slotId===s.id);
+    if(ps.length){
+      ctx.fillStyle='#1f2a24'; ctx.font='14px -apple-system,sans-serif';
+      let line = ps.map((u,i)=>`${i+1}.${u.name}${u.note?'('+u.note+')':''}`).join('   ');
+      // 简单折行
+      const maxChars=46; let start=0;
+      while(start<line.length){ const seg=line.slice(start,start+maxChars); ctx.fillText(seg, pad, y); y+=24; start+=maxChars; }
+    }
+    y+=14;
+  });
+  // 总计
+  ctx.strokeStyle='#e6ece8'; ctx.beginPath(); ctx.moveTo(pad,y); ctx.lineTo(W-pad,y); ctx.stroke(); y+=24;
+  ctx.fillStyle='#1f2a24'; ctx.font='bold 15px -apple-system,sans-serif';
+  ctx.fillText(`合计：${slots.length} 个场次 · ${STATE.signups.length} 人次报名`, pad, y);
+  ctx.fillStyle='#9aa6a0'; ctx.font='12px -apple-system,sans-serif';
+  ctx.fillText('由「周末约球台」生成', pad, y+22);
+  $('dlBtn').classList.remove('hidden'); $('copyBtn').classList.remove('hidden');
+  toast('报表已生成');
+}
+
+// 数据管理
+$('exportBtn').onclick = async ()=>{
+  const data=JSON.stringify(STATE,null,2);
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([data],{type:'application/json'}));
+  a.download='约球数据_'+todayStr()+'.json'; a.click(); toast('已导出');
+};
+$('importBtn').onclick=()=>$('importFile').click();
+$('importFile').onchange=async (e)=>{
+  const f=e.target.files[0]; if(!f) return;
+  try{ const obj=JSON.parse(await f.text()); await act('/api/import',obj); toast('导入成功'); }
+  catch(err){ toast('导入失败：格式错误'); }
+};
+$('resetBtn').onclick=async ()=>{ if(confirm('确定清空所有场次和报名？此操作不可恢复。')){ await act('/api/reset',{confirm:true}); toast('已重置'); } };
+
+// 初始化：默认日期为本周六
+(function(){ const sat=new Date(); sat.setDate(sat.getDate()+((6-sat.getDay()+7)%7||7)); $('newDate').value=sat.toISOString().slice(0,10); })();
+
+load();
+</script>
+</body>
+</html>
