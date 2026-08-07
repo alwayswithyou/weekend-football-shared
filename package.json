@@ -1,0 +1,13 @@
+{
+  "name": "weekend-football-shared",
+  "version": "1.0.0",
+  "description": "周末约球台 —— 零依赖 Node 后端 + 前端，群内实时共享报名",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
